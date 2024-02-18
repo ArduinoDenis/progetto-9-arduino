@@ -143,4 +143,115 @@ void loop() {
         } 
         // If the read serial is different from the master and not stored in memory,
         // and if the Key Storage mode is active, save the serial to memory
-        // as slave1, slave2 or slave3
+        // as slave1, slave2 or slave3.
+        else if (cardmas && slave == 0) {
+            lcd.clear();
+            lcd.print("Key detected!");
+            EEPROM.write(0, 1);
+            EEPROM.write(1, sernum0);
+            EEPROM.write(2, sernum1);
+            EEPROM.write(3, sernum2);
+            EEPROM.write(4, sernum3);
+            EEPROM.write(5, sernum4);
+            cardmas = false;
+            delay(1000);
+            lcd.setCursor(0, 1);
+            lcd.print("Slave 1 saved!");
+            delay(3000);
+            standby();
+        } else if (cardmas && slave == 1) {
+            lcd.clear();
+            lcd.print("Key detected!");
+            EEPROM.write(0, 2);
+            EEPROM.write(6, sernum0);
+            EEPROM.write(7, sernum1);
+            EEPROM.write(8, sernum2);
+            EEPROM.write(9, sernum3);
+            EEPROM.write(10, sernum4);
+            cardmas = false;
+            delay(1000);
+            lcd.setCursor(0, 1);
+            lcd.print("Slave 2 saved!");
+            delay(3000);
+            standby();
+        } else if (cardmas && slave == 2) {
+            lcd.clear();
+            lcd.print("Key detected!");
+            EEPROM.write(0, 3);
+            EEPROM.write(11, sernum0);
+            EEPROM.write(12, sernum1);
+            EEPROM.write(13, sernum2);
+            EEPROM.write(14, sernum3);
+            EEPROM.write(15, sernum4);
+            cardmas = false;
+            lcd.setCursor(0, 1);
+            lcd.print("Slave 3 saved!");
+            delay(3000);
+            standby();
+        }
+      }
+  }
+  
+  // If the infrared detects movement, turn on the yellow LED
+  if (digitalRead(pir) == HIGH) {
+    digitalWrite(ledgial, HIGH);
+  } else {
+    digitalWrite(ledgial, LOW);
+  }
+  
+  // If the infrared detects movement and the alarm is active,
+  // and therefore not in alarm, activate the alarm by flashing
+  // the green LED and sounding the buzzer
+  if (digitalRead(pir) == HIGH && antiON && !allarm) {
+    delay(pausa);
+    allarm = true;
+    lcd.clear();
+    lcd.print("ALARM!!");
+  }
+  
+  if (antiON && allarm) {
+    lamp();
+    buzz(7, 4186, 100);
+    delay(10); // Wait
+  }
+  
+  // If the Key Storage mode "Memorizzazione chiavi" was activated with the Master card,
+  // pressing the reset button resets the saved keys database up to that moment.
+  if (digitalRead(resetkey) == HIGH && cardmas) {
+    cardmas = false;
+    for (int i = 0; i < 16; i++){
+      EEPROM.write(i, 0);
+    } 
+    lcd.clear();
+    lcd.print("Reset keys...");
+    delay(3000);
+    standby();
+  }        
+                
+  rfid.halt();
+}
+
+void lamp() {
+  unsigned long currentMillis = millis();
+  if(currentMillis - previousMillis > interval) {
+    previousMillis = currentMillis; 
+    ledState ^= 1;
+    digitalWrite(ledGreen, ledState);
+  }
+}
+
+void buzz(int targetPin, long frequency, long length) {
+  long delayValue = 1000000 / frequency / 2;
+  long numCycles = frequency * length / 1000;
+  for (long i = 0; i < numCycles; i++) {
+    digitalWrite(targetPin, HIGH);
+    delayMicroseconds(delayValue);
+    digitalWrite(targetPin, LOW);
+    delayMicroseconds(delayValue);
+  }
+}
+
+void standby() {
+  lcd.clear();
+  lcd.print("ArduinoDenis"); 
+}
